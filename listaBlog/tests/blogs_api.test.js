@@ -76,6 +76,43 @@ describe('Inicializando Blogs', () => {
       .send(newBlog)
       .expect(400)
   })
+
+  test('a blog can deleted', async () => {
+    const blogsIniciales = await helper.blogsInDb()
+    const blogToDelete = blogsIniciales[0]
+
+    await api
+      .delete(`/api/blog/${blogToDelete.id}`)
+      .expect(204)
+
+      const blogsNuevos = await helper.blogsInDb()
+      assert.strictEqual(blogsNuevos.length, blogsIniciales.length - 1)
+
+      const blogs = blogsNuevos.map(b => b.title)
+
+      assert(!blogs.includes(blogToDelete.title))
+  })
+
+  test('a blog can be updated', async () => {
+    const blogIniciales = await helper.blogsInDb()
+    const blogToUpdate = blogIniciales[0]
+
+    const updateBlog = {
+      title: 'Go To Statement Considered Harmful Updated',
+      author: "Edsger W. Dijkstra",
+      url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
+      likes: 5
+    }
+    await api
+      .put(`/api/blog/${blogToUpdate.id}`)
+      .send(updateBlog)
+      .expect(200)
+
+      const blogDespues = await helper.blogsInDb()
+      const updatedBlog = blogDespues.find(blog => blog.id === blogToUpdate.id)
+
+      assert.strictEqual(updatedBlog.title, updateBlog.title)
+  })
 })
 
 after(async () => {
